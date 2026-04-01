@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أهل الدار لإدارة المجمعات السكنية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* =========================================
+           1. المتغيرات العامة والأساسيات
+           ========================================= */
+        :root {
+            --primary: #0f172a;
+            --accent: #38bdf8;
+            --glass: rgba(255, 255, 255, 0.98);
+            --border: rgba(15, 23, 42, 0.1);
+            --bg: #f4f7fa;
+            --success-bg: #f0fdf4;
+            --success-text: #166534;
+            --danger-text: red;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg);
+            background-image: radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.1) 0, transparent 50%);
+            margin: 0;
+            padding: clamp(10px, 2vw, 20px);
+            color: var(--primary);
+            min-height: 100vh;
+        }
+
+        .main-container {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: clamp(15px, 3vw, 35px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+            max-width: 100%;
+            margin: auto;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        /* =========================================
+           2. الترويسة والبطاقات (Header & Cards)
+           ========================================= */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 15px;
+        }
+
+        .brand {
+            font-size: 1.7rem;
+            font-weight: 900;
+            color: var(--primary);
+            letter-spacing: -1px;
+        }
+
+        .brand span {
+            color: var(--accent);
+        }
+
+        .date-display {
+            font-weight: 700;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: 0.3s;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.06), inset 0 3px 8px rgba(0, 0, 0, 0.03);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), inset 0 3px 8px rgba(0, 0, 0, 0.03);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .total-card {
+            background: white;
+            color: var(--primary);
+            border: 1px solid var(--border);
+        }
+
+        .total-card .stat-value {
+            color: var(--accent);
+        }
+
+        /* =========================================
+           3. التبويبات (Tabs)
+           ========================================= */
+        .nav-tabs {
+            display: inline-flex;
+            background: #e2e8f0;
+            padding: 5px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+        }
+
+        .tab-link {
+            padding: 10px 25px;
+            border: none;
+            background: none;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            color: #64748b;
+            transition: 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .tab-link.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        /* =========================================
+           4. الجداول والمدخلات (Tables & Inputs)
+           ========================================= */
+        .table-res {
+            overflow-x: auto;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            table-layout: auto;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #475569;
+            padding: 12px 10px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            border: 1px solid #eee;
+            white-space: normal;
+            line-height: 1.4;
+            vertical-align: middle;
+            width: 1%;
+        }
+
+        td {
+            padding: 10px 8px;
+            border: 1px solid #f8fafc;
+            text-align: center;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            width: 1%;
+        }
+
+        td:first-child,
+        th:first-child {
+            position: sticky;
+            right: 0;
+            background: #fff;
+            z-index: 5;
+            min-width: 230px;
+            text-align: right;
+            border-left: 2px solid #eee;
+            padding-right: 15px;
+            font-weight: 700;
+        }
+
+        .owners-table td:first-child,
+        .owners-table th:first-child {
+            position: static !important;
+            min-width: auto !important;
+            text-align: center !important;
+            padding: 10px 8px !important;
+            border-left: 1px solid #f8fafc !important;
+        }
+
+        input,
+        select {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 6px;
+            width: 100%;
+            font-family: inherit;
+            font-weight: 600;
+            text-align: center;
+            font-size: 0.85rem;
+            box-sizing: border-box;
+        }
+
+        .table-res input,
+        .table-res select {
+            width: auto;
+            field-sizing: content;
+            min-width: 4ch;
+            margin: 0 auto;
+            display: block;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            background: white;
+            outline: none;
+        }
+
+        /* فئات مساعدة للنصوص والألوان */
+        .text-center { text-align: center !important; }
+        .text-right { text-align: right !important; }
+        .font-bold { font-weight: 800; }
+        .text-danger { color: var(--danger-text); }
+        .bg-light-gray { background: #f1f5f9; }
+        .bg-success { background: var(--success-bg); }
+        .cursor-pointer { cursor: pointer; }
+
+        /* =========================================
+           5. الأزرار (Buttons)
+           ========================================= */
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1.5fr;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .btn-glass {
+            background: rgba(15, 23, 42, 0.03);
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            color: var(--primary);
+            transition: 0.3s;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn-glass:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-add {
+            background: none;
+            border: 1px dashed var(--accent);
+            color: var(--accent);
+            padding: 10px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            width: fit-content;
+            margin: 15px auto;
+            display: block;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn-add:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* =========================================
+           6. الإعدادات (Settings Layout)
+           ========================================= */
+        .settings-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+        }
+
+        .settings-card {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .settings-card h4 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        
+        .settings-card label {
+            display: inline-block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .settings-card input {
+            margin-bottom: 15px;
+        }
+
+        /* =========================================
+           7. الطباعة (Print Styles)
+           ========================================= */
+        #masterReport { display: none; }
+        .print-val { display: none; }
+
+        @media print {
+            @page { size: landscape; margin: 1cm; }
+            .no-print, .btn-group, .nav-tabs, .btn-add, input, select { display: none !important; }
+            body { background: white !important; padding: 0 !important; }
+            .main-container { box-shadow: none !important; border: none !important; padding: 0 !important; }
+            body.pr-tab .page:not(.active-page) { display: none !important; }
+            body.pr-master .page { display: none !important; }
+            body.pr-master #masterReport { display: block !important; padding: 20px; }
+            header { border-bottom: 3px solid #000; margin-bottom: 20px; }
+            .brand { -webkit-text-fill-color: #000 !important; color: #000 !important; font-size: 2.2rem !important; }
+            table { border: 1px solid #000 !important; }
+            th, td { border: 1px solid #000 !important; color: #000 !important; font-size: 0.75rem !important; padding: 5px !important; }
+            .print-val { display: inline-block !important; font-weight: bold; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <header>
+        <div class="brand" id="projHead">PROJECT<span>MASTER</span></div>
+        <div id="dateNow" class="date-display"></div>
+    </header>
+
+    <div class="dashboard-grid no-print">
+        <div class="stat-card">
+            <span class="stat-label">الإيرادات</span>
+            <span class="stat-value" id="sumPaid">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">المصروفات</span>
+            <span class="stat-value" id="sumExp">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">الفائض</span>
+            <span class="stat-value" id="netBalance">0</span>
+        </div>
+        <div class="stat-card total-card">
+            <span class="stat-label">الرصيد الكلي</span>
+            <span class="stat-value" id="finalTotal">0</span>
+        </div>
+    </div>
+
+    <div class="nav-tabs no-print">
+        <button class="tab-link active" onclick="showPage('income')">📄 كشف الإيرادات</button>
+        <button class="tab-link" onclick="showPage('expenses')">💸 كشف المصروفات</button>
+        <button class="tab-link" onclick="showPage('settings')">⚙️ الإعدادات</button>
+    </div>
+
+    <div id="income" class="page active-page">
+        <div class="table-res">
+            <table>
+                <thead>
+                    <tr>
+                        <th>الشقة | المالك</th>
+                        <th>الحالة</th>
+                        <th>تاريخ<br>التحويل</th>
+                        <th>القراءة<br>السابقة</th>
+                        <th>القراءة<br>الحالية</th>
+                        <th>الاستهلاك<br>(م3)</th>
+                        <th>قيمة<br>الاستهلاك</th>
+                        <th>القطة<br>الأساسية</th>
+                        <th>القطة<br>الإضافية</th>
+                        <th>المستحقات<br>السابقة</th>
+                        <th>المجموع<br>الكلي</th>
+                        <th>المبلغ<br>المحول</th>
+                        <th>المبلغ<br>المتبقي</th>
+                    </tr>
+                </thead>
+                <tbody id="unitsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="expenses" class="page" style="display:none;">
+        <div class="table-res">
+            <table style="min-width:100%">
+                <thead>
+                    <tr>
+                        <th style="width:45px">التاريخ</th>
+                        <th style="width:auto">البيان</th>
+                        <th style="width:45px">المبلغ</th>
+                        <th class="no-print" style="width:15px">🗑️</th>
+                    </tr>
+                </thead>
+                <tbody id="expBody"></tbody>
+            </table>
+        </div>
+        <button class="btn-add no-print" onclick="addExp()">+ إضافة مصروف جديد</button>
+    </div>
+
+    <div id="settings" class="page" style="display:none;">
+        <div class="settings-grid">
+            
+            <div class="settings-card" style="flex: 1 1 250px;">
+                <h4>⚙️ ضبط الثوابت</h4>
+                
+                <label>مسمى المشروع</label>
+                <input type="text" id="setProjName" onchange="saveAll()">
+                
+                <label>قطة ساكن</label>
+                <input type="number" id="setLive" onchange="saveAll()">
+                
+                <label>قطة غير ساكن</label>
+                <input type="number" id="setEmpty" onchange="saveAll()">
+                
+                <label>سعر الماء (م3)</label>
+                <input type="number" id="setWater" onchange="saveAll()">
+                
+                <label>رصيد مرحل</label>
+                <input type="number" id="setPrev" onchange="saveAll()">
+            </div>
+
+            <div class="settings-card" style="flex: 2 1 450px;">
+                <h4>🏘️ سجل الملاك</h4>
+                <table class="owners-table" style="width:100%; table-layout: fixed;">
+                    <thead>
+                        <tr>
+                            <th style="width:70px;">شقة</th>
+                            <th style="width:auto;">اسم المالك</th>
+                            <th style="width:45px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="ownersBody"></tbody>
+                </table>
+                <button class="btn-add" onclick="addOwnerRow()">+ إضافة مالك</button>
+            </div>
+
+            <div class="settings-card" style="flex: 1 1 100%; margin-top:0;">
+                <h4>💾 النسخ الاحتياطي للبيانات</h4>
+                <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 15px;">
+                    قم بتحميل نسخة من بيانات المجمع لحمايتها من الضياع، أو قم باسترجاع بيانات سابقة.
+                </p>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <button class="btn-glass" onclick="exportData()" style="background: #f0fdf4; border-color: #bbf7d0; color: #166534;">
+                        ⬇️ تحميل نسخة احتياطية (تصدير)
+                    </button>
+                    <label class="btn-glass" style="background: #fffbeb; border-color: #fde68a; color: #92400e; cursor: pointer;">
+                        ⬆️ استرجاع البيانات (استيراد)
+                        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                    </label>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="masterReport">
+        <h2 style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px;">تقرير الإيرادات والمصروفات الشهري</h2>
+        <div id="masterDash" style="margin-bottom: 20px;"></div>
+        <h4>أولاً: ملخص مستحقات الملاك</h4>
+        <div id="masterInc"></div>
+        <h4 style="margin-top:30px">ثانياً: سجل المصروفات التشغيلية</h4>
+        <div id="masterExp"></div>
+    </div>
+
+    <div class="btn-group no-print">
+        <button class="btn-glass" onclick="finalSave()">💾 حفظ البيانات</button>
+        <button class="btn-glass" id="btnPrintTab" onclick="printTab()">🖨️ طباعة الصفحة</button>
+        <button class="btn-glass" onclick="printMaster()">🏆 التقرير الشامل</button>
+    </div>
+</div>
+
+<script>
+    /* =========================================
+       1. تهيئة وجلب البيانات من المتصفح
+       ========================================= */
+    let units  = JSON.parse(localStorage.getItem('unData')) || [];
+    let exps   = JSON.parse(localStorage.getItem('exData')) || [];
+    let owners = JSON.parse(localStorage.getItem('ownersData')) || [{id: '1', name: ''}];
+    let config = JSON.parse(localStorage.getItem('configData')) || { 
+        projectName: 'PROPERTYMASTER', 
+        live: 500, 
+        empty: 250, 
+        water: 5, 
+        prev: 0 
+    };
+
+    /* =========================================
+       2. دوال التنقل والواجهة
+       ========================================= */
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(page => { 
+            page.style.display = 'none'; 
+            page.classList.remove('active-page'); 
+        });
+        
+        document.querySelectorAll('.tab-link').forEach(btn => btn.classList.remove('active'));
+        
+        const targetPage = document.getElementById(pageId);
+        targetPage.style.display = 'block'; 
+        targetPage.classList.add('active-page');
+        event.currentTarget.classList.add('active');
+        
+        let label = pageId === 'income' ? 'الإيرادات' : (pageId === 'expenses' ? 'المصروفات' : 'الإعدادات');
+        document.getElementById('btnPrintTab').innerHTML = `🖨️ طباعة تقرير ${label}`;
+    }
+
+    /* =========================================
+       3. العمليات الأساسية للمشروع
+       ========================================= */
+    function addExp() { 
+        exps.push({date: new Date().toISOString().split('T')[0], note: '', val: 0}); 
+        render(); 
+    }
+
+    function addOwnerRow() { 
+        owners.push({id: (owners.length + 1).toString(), name: ''}); 
+        syncUnits(); 
+        render(); 
+    }
+
+    function removeOwner(index) { 
+        if (confirm("هل أنت متأكد من حذف هذا المالك؟")) { 
+            owners.splice(index, 1); 
+            syncUnits(); 
+            render(); 
+        } 
+    }
+
+    function syncUnits() {
+        units = owners.map(owner => {
+            let existingUnit = units.find(u => u.uId === owner.id);
+            return existingUnit || { uId: owner.id, status: 'سكن', tDate: '', pRead: 0, cRead: 0, extra: 0, prev: 0, paid: 0 };
+        });
+    }
+
+    /* =========================================
+       4. معالجة وتحديث واجهة المستخدم (Render)
+       ========================================= */
+    function render() {
+        // تحديث الثوابت في الواجهة
+        document.getElementById('projHead').innerText = config.projectName;
+        document.getElementById('setProjName').value  = config.projectName;
+        document.getElementById('setLive').value      = config.live;
+        document.getElementById('setEmpty').value     = config.empty;
+        document.getElementById('setWater').value     = config.water;
+        document.getElementById('setPrev').value      = config.prev;
+        
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('dateNow').innerText  = new Date().toLocaleDateString('ar-SA', options);
+
+        // بناء جدول الملاك
+        const ownersBody = document.getElementById('ownersBody'); 
+        ownersBody.innerHTML = '';
+        
+        owners.forEach((owner, index) => { 
+            ownersBody.innerHTML += `
+                <tr>
+                    <td>
+                        <input class="text-center" style="width:100%;" value="${owner.id}" 
+                               onchange="owners[${index}].id=this.value; syncUnits(); render()">
+                    </td>
+                    <td>
+                        <input class="text-right" style="width:100%;" value="${owner.name}" 
+                               onchange="owners[${index}].name=this.value; render()">
+                    </td>
+                    <td class="text-center">
+                        <span onclick="removeOwner(${index})" class="text-danger cursor-pointer" style="font-size:1.1rem;">🗑️</span>
+                    </td>
+                </tr>`; 
+        });
+
+        // بناء جدول الإيرادات والوحدات
+        const unitsBody = document.getElementById('unitsBody'); 
+        unitsBody.innerHTML = '';
+        let totalPaid = 0;
+        
+        units.forEach((unit, index) => {
+            let ownerObj = owners.find(o => o.id === unit.uId) || { name: '---' };
+            let consumption = parseFloat((unit.cRead - unit.pRead).toFixed(3)); 
+            let waterCost = Math.round(consumption * config.water);
+            let baseFee = unit.status === 'سكن' ? config.live : config.empty;
+            let totalAmount = Math.round(waterCost + baseFee + parseFloat(unit.extra || 0) + parseFloat(unit.prev || 0));
+            let remainingAmount = totalAmount - unit.paid;
+            
+            totalPaid += parseFloat(unit.paid || 0);
+
+            unitsBody.innerHTML += `
+                <tr>
+                    <td class="text-right">شقة ${unit.uId} | ${ownerObj.name}</td>
+                    <td>
+                        <span class="print-val">${unit.status}</span>
+                        <select onchange="units[${index}].status=this.value; render()">
+                            <option ${unit.status === 'سكن' ? 'selected' : ''}>سكن</option>
+                            <option ${unit.status === 'لم يسكن' ? 'selected' : ''}>لم يسكن</option>
+                        </select>
+                    </td>
+                    <td>
+                        <span class="print-val">${unit.tDate}</span>
+                        <input type="date" value="${unit.tDate}" onchange="units[${index}].tDate=this.value; render()">
+                    </td>
+                    <td>
+                        <span class="print-val">${unit.pRead}</span>
+                        <input type="number" value="${unit.pRead}" onchange="units[${index}].pRead=this.value; render()">
+                    </td>
+                    <td>
+                        <span class="print-val">${unit.cRead}</span>
+                        <input type="number" value="${unit.cRead}" onchange="units[${index}].cRead=this.value; render()">
+                    </td>
+                    <td><b class="font-bold">${consumption}</b></td>
+                    <td>${waterCost}</td>
+                    <td>${baseFee}</td>
+                    <td>
+                        <span class="print-val">${unit.extra}</span>
+                        <input type="number" value="${unit.extra}" onchange="units[${index}].extra=this.value; render()">
+                    </td>
+                    <td>
+                        <span class="print-val">${unit.prev}</span>
+                        <input type="number" value="${unit.prev}" onchange="units[${index}].prev=this.value; render()">
+                    </td>
+                    <td class="bg-light-gray font-bold">${totalAmount}</td>
+                    <td>
+                        <span class="print-val">${unit.paid}</span>
+                        <input type="number" class="bg-success" value="${unit.paid}" onchange="units[${index}].paid=this.value; render()">
+                    </td>
+                    <td class="text-danger font-bold">${remainingAmount}</td>
+                </tr>`;
+        });
+
+        // بناء جدول المصروفات
+        exps.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const expBody = document.getElementById('expBody'); 
+        expBody.innerHTML = '';
+        let totalExp = 0;
+        
+        exps.forEach((exp, index) => {
+            totalExp += parseFloat(exp.val || 0);
+            expBody.innerHTML += `
+                <tr>
+                    <td>
+                        <span class="print-val">${exp.date}</span>
+                        <input type="date" value="${exp.date}" onchange="exps[${index}].date=this.value; render()">
+                    </td>
+                    <td>
+                        <span class="print-val text-right">${exp.note}</span>
+                        <input class="text-right" style="width:100%; field-sizing: fixed;" value="${exp.note}" onchange="exps[${index}].note=this.value">
+                    </td>
+                    <td>
+                        <span class="print-val">${exp.val}</span>
+                        <input type="number" value="${exp.val}" onchange="exps[${index}].val=this.value; render()">
+                    </td>
+                    <td class="no-print text-danger text-center cursor-pointer" onclick="exps.splice(${index},1); render()">🗑️</td>
+                </tr>`;
+        });
+
+        // تحديث الإحصائيات العلوية
+        document.getElementById('sumPaid').innerText    = totalPaid.toLocaleString();
+        document.getElementById('sumExp').innerText     = totalExp.toLocaleString();
+        document.getElementById('netBalance').innerText = (totalPaid - totalExp).toLocaleString();
+        document.getElementById('finalTotal').innerText = (totalPaid - totalExp + parseFloat(config.prev || 0)).toLocaleString();
+    }
+
+    /* =========================================
+       5. دوال الحفظ والطباعة
+       ========================================= */
+    function saveAll() {
+        config.projectName = document.getElementById('setProjName').value;
+        config.live        = parseFloat(document.getElementById('setLive').value) || 0;
+        config.empty       = parseFloat(document.getElementById('setEmpty').value) || 0;
+        config.water       = parseFloat(document.getElementById('setWater').value) || 0;
+        config.prev        = parseFloat(document.getElementById('setPrev').value) || 0;
+        render();
+    }
+
+    function finalSave() {
+        localStorage.setItem('unData', JSON.stringify(units));
+        localStorage.setItem('exData', JSON.stringify(exps));
+        localStorage.setItem('ownersData', JSON.stringify(owners));
+        localStorage.setItem('configData', JSON.stringify(config));
+        alert("💎 تم تأمين وحفظ كافة البيانات بنجاح!");
+    }
+
+    function printTab() { 
+        document.body.classList.add('pr-tab'); 
+        window.print(); 
+        document.body.classList.remove('pr-tab'); 
+    }
+
+    function printMaster() {
+        document.getElementById('masterDash').innerHTML = `
+            <div class="dashboard-grid print-only" style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+                ${document.querySelector('.dashboard-grid').innerHTML}
+            </div>`;
+        
+        // تجهيز جدول الإيرادات الشامل
+        let incomeTable = `
+            <table>
+                <thead>
+                    <tr><th>الوحدة والمالك</th><th>الحالة</th><th>المطلوب</th><th>المحول</th><th>الباقي</th></tr>
+                </thead>
+                <tbody>`;
+        
+        units.forEach(u => {
+            let owner = owners.find(own => own.id === u.uId) || {name: '---'};
+            let totalAmount = Math.round((u.cRead - u.pRead) * config.water + (u.status == 'سكن' ? config.live : config.empty) + parseFloat(u.extra || 0) + parseFloat(u.prev || 0));
+            incomeTable += `
+                <tr>
+                    <td>شقة ${u.uId} | ${owner.name}</td>
+                    <td>${u.status}</td>
+                    <td>${totalAmount}</td>
+                    <td>${u.paid}</td>
+                    <td>${totalAmount - u.paid}</td>
+                </tr>`;
+        });
+        incomeTable += `</tbody></table>`;
+        document.getElementById('masterInc').innerHTML = incomeTable;
+
+        // تجهيز جدول المصروفات الشامل
+        let expenseTable = `
+            <table>
+                <thead>
+                    <tr><th>التاريخ</th><th>البيان</th><th>المبلغ</th></tr>
+                </thead>
+                <tbody>`;
+        
+        exps.forEach(e => { 
+            expenseTable += `<tr><td>${e.date}</td><td>${e.note}</td><td>${e.val}</td></tr>`; 
+        });
+        expenseTable += `</tbody></table>`;
+        document.getElementById('masterExp').innerHTML = expenseTable;
+
+        document.body.classList.add('pr-master'); 
+        window.print(); 
+        document.body.classList.remove('pr-master');
+    }
+
+    /* =========================================
+       6. النسخ الاحتياطي (تصدير واستيراد)
+       ========================================= */
+    function exportData() {
+        const allData = { units, exps, owners, config };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allData));
+        const downloadAnchorNode = document.createElement('a');
+        const today = new Date().toISOString().split('T')[0];
+        
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "نسخة_احتياطية_المجمع_" + today + ".json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    }
+
+    function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                if (importedData.units && importedData.owners) {
+                    units  = importedData.units;
+                    exps   = importedData.exps || [];
+                    owners = importedData.owners;
+                    config = importedData.config || { projectName: 'PROPERTYMASTER', live: 500, empty: 250, water: 5, prev: 0 };
+                    
+                    finalSave(); 
+                    render(); 
+                    alert("✅ تم استرجاع البيانات بنجاح!");
+                } else {
+                    alert("❌ ملف النسخة الاحتياطية غير صالح أو لا يتبع هيكلة هذا التطبيق.");
+                }
+            } catch (error) {
+                alert("❌ حدث خطأ أثناء قراءة الملف. تأكد من أنه ملف صالح.");
+            }
+            event.target.value = ''; // تصفير حقل الرفع ليقبل نفس الملف مجدداً إذا لزم الأمر
+        };
+        reader.readAsText(file);
+    }
+
+    // التشغيل الأولي
+    syncUnits(); 
+    render();
+</script>
+</body>
+</html>
