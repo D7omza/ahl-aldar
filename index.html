@@ -269,7 +269,7 @@
            ========================================= */
         .btn-group {
             display: grid;
-            grid-template-columns: 1fr 1.5fr 1.5fr;
+            grid-template-columns: repeat(4, 1fr);
             gap: 12px;
             margin-top: 30px;
         }
@@ -385,7 +385,7 @@
 
 <div class="main-container" id="appContent">
     <header>
-        <div class="brand" id="projHead">PROJECT<span>MASTER</span></div>
+        <div class="brand" id="projHead">منصة <span>أهل الدار</span></div>
         <div id="dateNow" class="date-display"></div>
     </header>
 
@@ -509,6 +509,16 @@
                 </div>
             </div>
 
+            <div class="settings-card" style="flex: 1 1 100%; border-color: #fca5a5; background: #fef2f2; margin-top: 0;">
+                <h4 style="color: #991b1b; margin-top: 0;">📅 إغلاق الشهر المالي</h4>
+                <p style="font-size: 0.9rem; color: #7f1d1d; margin-bottom: 15px;">
+                    تحذير: هذه العملية ستقوم بحفظ الشهر الحالي في الأرشيف، وترحيل الديون لتصبح "مستحقات سابقة" للشهر الجديد، مع تصفير المدفوعات والمصروفات.
+                </p>
+                <button class="btn-glass" onclick="closeMonth()" style="background: #fee2e2; border-color: #fca5a5; color: #991b1b; margin: 0;">
+                    🔐 إغلاق الشهر وبدء شهر جديد
+                </button>
+            </div>
+
         </div>
     </div>
 
@@ -525,6 +535,7 @@
         <button class="btn-glass" onclick="finalSave()">💾 حفظ البيانات</button>
         <button class="btn-glass" id="btnPrintTab" onclick="printTab()">🖨️ طباعة الصفحة</button>
         <button class="btn-glass" onclick="printMaster()">🏆 التقرير الشامل</button>
+        <button class="btn-glass" onclick="exportToExcel()" style="background: #f0fdf4; border-color: #bbf7d0; color: #166534;">📊 تصدير إكسيل</button>
     </div>
 </div>
 
@@ -559,18 +570,19 @@
 
 
     /* =========================================
-       1. تهيئة وجلب البيانات من المتصفح
+       1. تهيئة وجلب البيانات من المتصفح (مفاتيح جديدة لموقع نظيف)
        ========================================= */
-    let units  = JSON.parse(localStorage.getItem('unData')) || [];
-    let exps   = JSON.parse(localStorage.getItem('exData')) || [];
-    let owners = JSON.parse(localStorage.getItem('ownersData')) || [{id: '1', name: ''}];
-    let config = JSON.parse(localStorage.getItem('configData')) || { 
-        projectName: 'PROPERTYMASTER', 
-        live: 500, 
-        empty: 250, 
-        water: 5, 
+    let units  = JSON.parse(localStorage.getItem('unData_v2')) || [];
+    let exps   = JSON.parse(localStorage.getItem('exData_v2')) || [];
+    let owners = JSON.parse(localStorage.getItem('ownersData_v2')) || []; // مصفوفة فارغة تعني لا يوجد شقق أو ملاك
+    let config = JSON.parse(localStorage.getItem('configData_v2')) || { 
+        projectName: 'منصة أهل الدار', 
+        live: 0, 
+        empty: 0, 
+        water: 0, 
         prev: 0 
     };
+    let archive = JSON.parse(localStorage.getItem('archiveData_v2')) || [];
 
     /* =========================================
        2. دوال التنقل والواجهة
@@ -640,6 +652,10 @@
         const ownersBody = document.getElementById('ownersBody'); 
         ownersBody.innerHTML = '';
         
+        if(owners.length === 0) {
+            ownersBody.innerHTML = `<tr><td colspan="3" style="color:#64748b; padding:15px;">الجدول فارغ.. أضف أول مالك لبدء العمل.</td></tr>`;
+        }
+
         owners.forEach((owner, index) => { 
             ownersBody.innerHTML += `
                 <tr>
@@ -662,6 +678,10 @@
         unitsBody.innerHTML = '';
         let totalPaid = 0;
         
+        if(units.length === 0) {
+            unitsBody.innerHTML = `<tr><td colspan="13" style="color:#64748b; padding:20px;">لا يوجد شقق أو ملاك مسجلين حالياً، انتقل للإعدادات لإضافتهم.</td></tr>`;
+        }
+
         units.forEach((unit, index) => {
             let ownerObj = owners.find(o => o.id === unit.uId) || { name: '---' };
             let consumption = parseFloat((unit.cRead - unit.pRead).toFixed(3)); 
@@ -720,6 +740,10 @@
         expBody.innerHTML = '';
         let totalExp = 0;
         
+        if(exps.length === 0) {
+            expBody.innerHTML = `<tr><td colspan="4" style="color:#64748b; padding:15px;">لا توجد مصروفات مسجلة حتى الآن.</td></tr>`;
+        }
+
         exps.forEach((exp, index) => {
             totalExp += parseFloat(exp.val || 0);
             expBody.innerHTML += `
@@ -760,10 +784,10 @@
     }
 
     function finalSave() {
-        localStorage.setItem('unData', JSON.stringify(units));
-        localStorage.setItem('exData', JSON.stringify(exps));
-        localStorage.setItem('ownersData', JSON.stringify(owners));
-        localStorage.setItem('configData', JSON.stringify(config));
+        localStorage.setItem('unData_v2', JSON.stringify(units));
+        localStorage.setItem('exData_v2', JSON.stringify(exps));
+        localStorage.setItem('ownersData_v2', JSON.stringify(owners));
+        localStorage.setItem('configData_v2', JSON.stringify(config));
         alert("💎 تم تأمين وحفظ كافة البيانات بنجاح!");
     }
 
@@ -773,13 +797,57 @@
         document.body.classList.remove('pr-tab'); 
     }
 
+    function closeMonth() {
+        let monthName = prompt("أدخل اسم أو تاريخ هذا الشهر لحفظه في الأرشيف (مثال: أبريل 2026):");
+        if (!monthName) return; 
+
+        if (confirm("هل أنت متأكد من إغلاق الشهر؟ تأكد من مراجعة كل الأرقام قبل الموافقة.")) {
+            
+            let totalPaid = units.reduce((sum, u) => sum + parseFloat(u.paid || 0), 0);
+            let totalExp = exps.reduce((sum, e) => sum + parseFloat(e.val || 0), 0);
+            let currentFinalTotal = totalPaid - totalExp + parseFloat(config.prev || 0);
+
+            archive.push({
+                month: monthName,
+                dateSaved: new Date().toISOString().split('T')[0],
+                units: JSON.parse(JSON.stringify(units)), 
+                exps: JSON.parse(JSON.stringify(exps)),   
+                finalBalance: currentFinalTotal
+            });
+            localStorage.setItem('archiveData_v2', JSON.stringify(archive));
+
+            units = units.map(u => {
+                let consumption = parseFloat((u.cRead - u.pRead).toFixed(3)) || 0;
+                let waterCost = Math.round(consumption * config.water);
+                let baseFee = u.status === 'سكن' ? config.live : config.empty;
+                let totalAmount = Math.round(waterCost + baseFee + parseFloat(u.extra || 0) + parseFloat(u.prev || 0));
+                let debt = totalAmount - parseFloat(u.paid || 0);
+
+                return {
+                    ...u,
+                    pRead: u.cRead, 
+                    prev: debt,     
+                    paid: 0,        
+                    extra: 0,       
+                    tDate: ''       
+                };
+            });
+
+            exps = []; 
+            config.prev = currentFinalTotal; 
+
+            finalSave(); 
+            render();    
+            alert(`✅ تمت العملية بنجاح! تم حفظ شهر (${monthName}) في الأرشيف، وبدأنا شهراً جديداً.`);
+        }
+    }
+
     function printMaster() {
         document.getElementById('masterDash').innerHTML = `
             <div class="dashboard-grid print-only" style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
                 ${document.querySelector('.dashboard-grid').innerHTML}
             </div>`;
         
-        // تجهيز جدول الإيرادات الشامل
         let incomeTable = `
             <table>
                 <thead>
@@ -802,7 +870,6 @@
         incomeTable += `</tbody></table>`;
         document.getElementById('masterInc').innerHTML = incomeTable;
 
-        // تجهيز جدول المصروفات الشامل
         let expenseTable = `
             <table>
                 <thead>
@@ -821,11 +888,54 @@
         document.body.classList.remove('pr-master');
     }
 
+    function exportToExcel() {
+        let incTable = `<table border="1"><thead><tr><th>الوحدة والمالك</th><th>الحالة</th><th>المطلوب</th><th>المحول</th><th>الباقي</th></tr></thead><tbody>`;
+        units.forEach(u => {
+            let owner = owners.find(own => own.id === u.uId) || {name: '---'};
+            let totalAmount = Math.round((u.cRead - u.pRead) * config.water + (u.status == 'سكن' ? config.live : config.empty) + parseFloat(u.extra || 0) + parseFloat(u.prev || 0));
+            incTable += `<tr><td>شقة ${u.uId} | ${owner.name}</td><td>${u.status}</td><td>${totalAmount}</td><td>${u.paid}</td><td>${totalAmount - u.paid}</td></tr>`;
+        });
+        incTable += `</tbody></table>`;
+
+        let expTable = `<table border="1"><thead><tr><th>التاريخ</th><th>البيان</th><th>المبلغ</th></tr></thead><tbody>`;
+        exps.forEach(e => { expTable += `<tr><td>${e.date}</td><td>${e.note}</td><td>${e.val}</td></tr>`; });
+        expTable += `</tbody></table>`;
+
+        let template = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { direction: rtl; font-family: 'Cairo', sans-serif; text-align: center; }
+                table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                th { background-color: #e2e8f0; font-weight: bold; padding: 10px; font-size: 14px; }
+                td { padding: 8px; font-size: 14px; }
+            </style>
+        </head>
+        <body>
+            <h2>تقرير الإيرادات والمصروفات</h2>
+            <h3>أولاً: ملخص مستحقات الملاك</h3>
+            ${incTable}
+            <h3>ثانياً: سجل المصروفات التشغيلية</h3>
+            ${expTable}
+        </body>
+        </html>`;
+
+        let blob = new Blob([template], { type: 'application/vnd.ms-excel' });
+        let url = URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        a.href = url;
+        a.download = `تقرير_أهل_الدار_${new Date().toISOString().split('T')[0]}.xls`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
     /* =========================================
        6. النسخ الاحتياطي (تصدير واستيراد)
        ========================================= */
     function exportData() {
-        const allData = { units, exps, owners, config };
+        const allData = { units, exps, owners, config, archive };
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allData));
         const downloadAnchorNode = document.createElement('a');
         const today = new Date().toISOString().split('T')[0];
@@ -846,10 +956,11 @@
             try {
                 const importedData = JSON.parse(e.target.result);
                 if (importedData.units && importedData.owners) {
-                    units  = importedData.units;
-                    exps   = importedData.exps || [];
-                    owners = importedData.owners;
-                    config = importedData.config || { projectName: 'PROPERTYMASTER', live: 500, empty: 250, water: 5, prev: 0 };
+                    units   = importedData.units;
+                    exps    = importedData.exps || [];
+                    owners  = importedData.owners;
+                    config  = importedData.config || { projectName: 'منصة أهل الدار', live: 0, empty: 0, water: 0, prev: 0 };
+                    archive = importedData.archive || [];
                     
                     finalSave(); 
                     render(); 
@@ -860,7 +971,7 @@
             } catch (error) {
                 alert("❌ حدث خطأ أثناء قراءة الملف. تأكد من أنه ملف صالح.");
             }
-            event.target.value = ''; // تصفير حقل الرفع ليقبل نفس الملف مجدداً إذا لزم الأمر
+            event.target.value = ''; 
         };
         reader.readAsText(file);
     }
