@@ -30,6 +30,27 @@
             min-height: 100vh;
         }
 
+        /* --- تنسيقات شاشة الحماية (نافذة إدخال الكود) --- */
+        #authOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
+            display: flex; justify-content: center; align-items: center; z-index: 9999;
+        }
+        .auth-card {
+            background: white; padding: 40px; border-radius: 20px; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); max-width: 400px; width: 90%;
+        }
+        .auth-card input {
+            font-size: 1.5rem; letter-spacing: 5px; padding: 15px; margin: 20px 0;
+            border: 2px solid var(--border); border-radius: 12px; text-align: center;
+        }
+        .auth-card button {
+            background: var(--primary); color: white; border: none; padding: 15px 30px;
+            font-size: 1.2rem; font-weight: 800; border-radius: 12px; cursor: pointer; width: 100%;
+        }
+        .auth-card button:hover { background: var(--accent); }
+        #appContent { display: none; /* إخفاء محتوى الموقع حتى يتم إدخال الكود */ }
+
         .main-container {
             background: var(--glass);
             backdrop-filter: blur(20px);
@@ -352,7 +373,17 @@
 </head>
 <body>
 
-<div class="main-container">
+<div id="authOverlay">
+    <div class="auth-card">
+        <h2 style="margin-top:0;">🔒 الدخول للنظام</h2>
+        <p style="color: #64748b; font-size: 0.9rem;">الرجاء إدخال كود المرور للوصول إلى لوحة التحكم.</p>
+        <input type="password" id="pinInput" placeholder="****" onkeypress="if(event.key === 'Enter') checkPin()">
+        <button onclick="checkPin()">دخول</button>
+        <p id="authError" style="color: red; font-size: 0.85rem; font-weight: bold; margin-top: 15px; display: none;">❌ الكود غير صحيح!</p>
+    </div>
+</div>
+
+<div class="main-container" id="appContent">
     <header>
         <div class="brand" id="projHead">PROJECT<span>MASTER</span></div>
         <div id="dateNow" class="date-display"></div>
@@ -498,6 +529,35 @@
 </div>
 
 <script>
+    /* =========================================
+       0. نظام كود المرور (Authentication)
+       ========================================= */
+    const SECRET_PIN = '2026'; // <--- هنا يمكنك تغيير الكود السري في أي وقت
+    
+    // التحقق عند تحميل الصفحة
+    window.onload = function() {
+        if (localStorage.getItem('userAuth') === SECRET_PIN) {
+            document.getElementById('authOverlay').style.display = 'none';
+            document.getElementById('appContent').style.display = 'block';
+        } else {
+            // إذا كان الكود القديم مختلفاً أو غير موجود، امسح الموافقة السابقة واطلب الكود الجديد
+            localStorage.removeItem('userAuth');
+        }
+    };
+
+    function checkPin() {
+        const input = document.getElementById('pinInput').value;
+        if (input === SECRET_PIN) {
+            localStorage.setItem('userAuth', SECRET_PIN);
+            document.getElementById('authOverlay').style.display = 'none';
+            document.getElementById('appContent').style.display = 'block';
+            document.getElementById('authError').style.display = 'none';
+        } else {
+            document.getElementById('authError').style.display = 'block';
+        }
+    }
+
+
     /* =========================================
        1. تهيئة وجلب البيانات من المتصفح
        ========================================= */
